@@ -7,13 +7,13 @@ const fs = require('fs');
 const AdmZip = require('adm-zip');
 
 const platform = os.platform();
+const arch = os.arch();
 
 const executableMap = {
-  win32: 'scons-win.exe.zip',
-  darwin: 'scons-macos.zip',
-  linux: 'scons-linux.zip'
+  win32: 'scons-win.exe',
+  darwin: arch === 'arm64' ? 'scons-macos-arm64' : 'scons-macos-x86_64',
+  linux: 'scons-linux'
 };
-
 const executable = executableMap[platform];
 
 if (!executable) {
