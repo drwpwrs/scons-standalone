@@ -2,19 +2,19 @@
 
 A set of standalone [SCons](https://github.com/SCons/scons) executables built with [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
-Requires a JavaScript runtime such as [Node.js](https://nodejs.org) or [Bun](https://bun.sh) for detecting and extracting the platform-specific executable.
-
-## Why?
-
 This exists mostly so that I can bundle SCons into JS-based tools without the end user having to worry about Python.
 
 It's not offically supported, nor is it affiliated with or endorsed by the SCons team, but feel free to use it in your own projects.
 
 ## Installation
 
+Requires a JavaScript runtime such as [Node.js](https://nodejs.org) or [Bun](https://bun.sh) for detecting and extracting the platform-specific executable.
+
 ```bash
 (npm|yarn|pnpm|bun) install -g scons-standalone
 ```
+
+Alternatively, you can download the executables from the [GitHub releases page](https://github.com/drwpwrs/scons-standalone/releases).
 
 ## Usage
 

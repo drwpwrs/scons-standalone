@@ -126,6 +126,8 @@ jobs:
           name: npm-package
           path: package
 
+      
+
       - name: Check if version exists on npm
         id: version-check
         run: |
@@ -135,6 +137,9 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Init Bun
+        uses: ./.github/actions/init-bun
 
       - name: Install npm
         run: bun install -g npm
