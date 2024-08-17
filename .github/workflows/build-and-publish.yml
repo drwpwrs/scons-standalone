@@ -4,12 +4,36 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '.scons-version'
   workflow_dispatch: # Allow manual triggers for testing
 
 jobs:
+  check_version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check_release.outputs.should_build }}
+      scons_version: ${{ steps.get_version.outputs.scons_version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get SCons version
+        id: get_version
+        run: echo "scons_version=$(cat .scons-version)" >> $GITHUB_OUTPUT
+
+      - name: Check if release exists
+        id: check_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_EXISTS=$(gh release view v${{ steps.get_version.outputs.scons_version }} > /dev/null 2>&1 && echo "true" || echo "false")
+          if [ "$RELEASE_EXISTS" = "false" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    needs: check_version
+    if: needs.check_version.outputs.should_build == 'true'
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -26,10 +50,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get SCons version
-        id: get_version
-        run: echo "scons_version=$(cat .scons-version)" >> $GITHUB_OUTPUT
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -38,7 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller scons==${{ steps.get_version.outputs.scons_version }}
+          pip install pyinstaller scons==${{ needs.check_version.outputs.scons_version }}
 
       - name: Build standalone SCons executable
         run: |
@@ -48,6 +68,7 @@ jobs:
           else
             pyinstaller --add-data "${SCONS_PATH}:scons" --name ${{ matrix.output_name }} src/scons_wrapper.py
           fi
+
       - name: Compress executable
         run: |
           cd dist
@@ -60,14 +81,11 @@ jobs:
           path: dist/${{ matrix.output_name }}.zip
 
   package:
-    needs: build
+    needs: [check_version, build]
+    if: needs.check_version.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Get SCons version
-        id: get_version
-        run: echo "scons_version=$(cat .scons-version)" >> $GITHUB_OUTPUT
 
       - name: Init Bun
         uses: ./.github/actions/init-bun
@@ -79,7 +97,7 @@ jobs:
 
       - name: Update package.json version
         run: |
-          sed -i 's/"version": ".*"/"version": "${{ steps.get_version.outputs.scons_version }}"/' package.json
+          sed -i 's/"version": ".*"/"version": "${{ needs.check_version.outputs.scons_version }}"/' package.json
 
       - name: Prepare package
         run: |
@@ -103,12 +121,12 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.get_version.outputs.scons_version }}
-          name: Release ${{ steps.get_version.outputs.scons_version }}
+          tag_name: v${{ needs.check_version.outputs.scons_version }}
+          name: Release ${{ needs.check_version.outputs.scons_version }}
           body: >
-            This release corresponds to SCons ${{ steps.get_version.outputs.scons_version }}.
+            This release corresponds to SCons ${{ needs.check_version.outputs.scons_version }}.
 
-            SCons Release: https://github.com/SCons/scons/releases/tag/${{ steps.get_version.outputs.scons_version }}
+            SCons Release: https://github.com/SCons/scons/releases/tag/${{ needs.check_version.outputs.scons_version }}
           files: package/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
