@@ -157,7 +157,7 @@ jobs:
           cd package
           npm publish --access public
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   github_release:
     needs: prepare_package
