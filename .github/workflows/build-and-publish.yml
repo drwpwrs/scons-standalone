@@ -120,13 +120,13 @@ jobs:
     needs: prepare_package
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download package artifact
         uses: actions/download-artifact@v3
         with:
           name: npm-package
           path: package
-
-      
 
       - name: Check if version exists on npm
         id: version-check
@@ -182,7 +182,5 @@ jobs:
           tag_name: v${{ steps.get-version.outputs.version }}
           name: Release ${{ steps.get-version.outputs.version }}
           body: >
-            This release corresponds to SCons ${{ steps.get-version.outputs.version }}.
-
-            SCons Release: https://github.com/SCons/scons/releases/tag/${{ steps.get-version.outputs.version }}
+            This release corresponds to [SCons ${{ steps.get-version.outputs.version }}](https://github.com/SCons/scons/releases/tag/${{ steps.get-version.outputs.version }}).
           files: package/bin/*.zip
