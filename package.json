@@ -1,0 +1,28 @@
+{
+	"name": "scons-standalone",
+	"version": "1.0.0",
+	"description": "Cross-platform standalone SCons executable for node",
+	"bin": {
+		"scons": "bin/scons"
+	},
+	"files": [
+		"bin",
+		"package.json"
+	],
+	"keywords": [
+		"scons"
+	],
+	"dependencies": {
+		"adm-zip": "^0.5.15"
+	},
+	"author": "Drew Powers",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/drwpwrs/scons-standalone.git"
+	},
+	"bugs": {
+		"url": "https://github.com/drwpwrs/scons-standalone/issues"
+	},
+	"homepage": "https://github.com/drwpwrs/scons-standalone#readme"
+}

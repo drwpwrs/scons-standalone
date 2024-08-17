@@ -1,0 +1,54 @@
+name: Check for SCons Releases
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Run every 6 hours
+  workflow_dispatch: # Allow manual triggers for testing
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get latest SCons release
+        id: get_release
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/SCons/scons/releases/latest)
+          echo "latest_version=$(echo $LATEST_RELEASE | jq -r .tag_name)" >> $GITHUB_OUTPUT
+          echo "release_url=$(echo $LATEST_RELEASE | jq -r .html_url)" >> $GITHUB_OUTPUT
+          echo "release_name=$(echo $LATEST_RELEASE | jq -r .name)" >> $GITHUB_OUTPUT
+
+      - name: Check if build is needed
+        id: check_build
+        run: |
+          CURRENT_VERSION=$(cat .scons-version 2>/dev/null || echo "")
+          if [ "${{ steps.get_release.outputs.latest_version }}" != "$CURRENT_VERSION" ]; then
+            echo "build_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "build_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger build workflow
+        if: steps.check_build.outputs.build_needed == 'true'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: start-scons-build
+          client-payload: >-
+            {
+              "scons_version": "${{ steps.get_release.outputs.latest_version }}",
+              "scons_release_url": "${{ steps.get_release.outputs.release_url }}",
+              "scons_release_name": "${{ steps.get_release.outputs.release_name }}"
+            }
+
+      - name: Update .scons-version file
+        if: steps.check_build.outputs.build_needed == 'true'
+        run: |
+          echo "${{ steps.get_release.outputs.latest_version }}" > .scons-version
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .scons-version
+          git commit -m "Update SCons version to ${{ steps.get_release.outputs.latest_version }}"
+          git push
