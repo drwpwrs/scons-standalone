@@ -61,10 +61,17 @@ jobs:
           pip install pyinstaller scons==${{ needs.check_version.outputs.scons_version }}
           pyinstaller --hidden-import=SCons.Script --name ${{ matrix.output_name }} src/scons_wrapper.py
 
-      - name: Compress executable
+      - name: Compress executable (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd dist
           zip -r ${{ matrix.output_name }}.zip ${{ matrix.output_name }}
+
+      - name: Compress executable (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd dist
+          Compress-Archive -Path ${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
