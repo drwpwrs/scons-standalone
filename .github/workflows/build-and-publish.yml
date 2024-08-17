@@ -55,20 +55,11 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Install dependencies and build executable
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller scons==${{ needs.check_version.outputs.scons_version }}
-
-      - name: Get SCons path and build executable
-        run: |
-          SCONS_PATH=$(python -c "import scons, os; print(os.path.dirname(scons.__file__))")
-          echo "SCons path: $SCONS_PATH"
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            pyinstaller --add-data "${SCONS_PATH};scons" --name ${{ matrix.output_name }} src/scons_wrapper.py
-          else
-            pyinstaller --add-data "${SCONS_PATH}:scons" --name ${{ matrix.output_name }} src/scons_wrapper.py
-          fi
+          pyinstaller --hidden-import=SCons.Script --name ${{ matrix.output_name }} src/scons_wrapper.py
 
       - name: Compress executable
         run: |
