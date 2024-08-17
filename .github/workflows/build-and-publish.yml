@@ -2,6 +2,7 @@ name: Build and Publish
 
 on:
   push:
+    branches: [main]
     paths:
       - '.scons-version'
   workflow_dispatch: # Allow manual triggers for testing
