@@ -126,6 +126,4 @@ jobs:
             This release corresponds to SCons ${{ needs.check_version.outputs.scons_version }}.
 
             SCons Release: https://github.com/SCons/scons/releases/tag/${{ needs.check_version.outputs.scons_version }}
-          files: package/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: package/bin/*.zip
