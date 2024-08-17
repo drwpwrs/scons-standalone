@@ -60,9 +60,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller scons==${{ needs.check_version.outputs.scons_version }}
 
-      - name: Build standalone SCons executable
+      - name: Get SCons path and build executable
         run: |
-          SCONS_PATH=$(python -c 'import scons; print(scons.__path__[0])')
+          SCONS_PATH=$(python -c "import scons, os; print(os.path.dirname(scons.__file__))")
+          echo "SCons path: $SCONS_PATH"
           if [ "${{ runner.os }}" == "Windows" ]; then
             pyinstaller --add-data "${SCONS_PATH};scons" --name ${{ matrix.output_name }} src/scons_wrapper.py
           else
