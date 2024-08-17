@@ -79,12 +79,15 @@ jobs:
           name: ${{ matrix.output_name }}.zip
           path: dist/${{ matrix.output_name }}.zip
 
-  package:
-    needs: [check_version, build]
-    if: needs.check_version.outputs.should_build == 'true'
+  prepare-package:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Setup Python with cache
+        id: setup-python
+        uses: ./.github/actions/setup-python
 
       - name: Init Bun
         uses: ./.github/actions/init-bun
@@ -96,7 +99,7 @@ jobs:
 
       - name: Update package.json version
         run: |
-          sed -i 's/"version": ".*"/"version": "${{ needs.check_version.outputs.scons_version }}"/' package.json
+          sed -i 's/"version": ".*"/"version": "${{ steps.setup-python.outputs.scons-version }}"/' package.json
 
       - name: Prepare package
         run: |
@@ -106,24 +109,77 @@ jobs:
           chmod +x package/bin/scons
           cp package.json README.md package/
 
-      - name: Install dependencies
-        run: cd package && bun install
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-package
+          path: package
+
+  npm-publish:
+    needs: prepare-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download package artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-package
+          path: package
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Check if version exists on npm
+        id: version-check
+        run: |
+          VERSION=$(node -p "require('./package/package.json').version")
+          if npm view scons-cli@$VERSION version &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Publish to npm
+        if: steps.version-check.outputs.exists == 'false'
         run: |
           cd package
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
           npm publish --access public
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  github-release:
+    needs: prepare-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download package artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-package
+          path: package
+
+      - name: Get version
+        id: get-version
+        run: echo "version=$(node -p "require('./package/package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check if GitHub release exists
+        id: check-release
+        run: |
+          if gh release view v${{ steps.get-version.outputs.version }} &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create GitHub Release
+        if: steps.check-release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ needs.check_version.outputs.scons_version }}
-          name: Release ${{ needs.check_version.outputs.scons_version }}
+          tag_name: v${{ steps.get-version.outputs.version }}
+          name: Release ${{ steps.get-version.outputs.version }}
           body: >
-            This release corresponds to SCons ${{ needs.check_version.outputs.scons_version }}.
+            This release corresponds to SCons ${{ steps.get-version.outputs.version }}.
 
-            SCons Release: https://github.com/SCons/scons/releases/tag/${{ needs.check_version.outputs.scons_version }}
+            SCons Release: https://github.com/SCons/scons/releases/tag/${{ steps.get-version.outputs.version }}
           files: package/bin/*.zip
