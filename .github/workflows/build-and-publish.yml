@@ -148,7 +148,7 @@ jobs:
         if: steps.version-check.outputs.exists == 'false'
         run: |
           cd package
-          bunx -- bun npm publish --access public
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
