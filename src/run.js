@@ -9,24 +9,24 @@ const AdmZip = require('adm-zip');
 const platform = os.platform();
 const arch = os.arch();
 
-const executableMap = {
-  win32: 'scons-win.exe',
-  darwin: arch === 'arm64' ? 'scons-macos-arm64' : 'scons-macos-x86_64',
-  linux: 'scons-linux'
+const zipMap = {
+  win32: 'scons-win.exe.zip',
+  darwin: arch === 'arm64' ? 'scons-macos-arm64.zip' : 'scons-macos-x86_64.zip',
+  linux: 'scons-linux.zip'
 };
-const executable = executableMap[platform];
+const zipArchive = zipMap[platform];
 
-if (!executable) {
+if (!zipArchive) {
   console.error(`Unsupported platform: ${platform}`);
   process.exit(1);
 }
 
-const executablePath = path.join(__dirname, executable);
-const extractedPath = path.join(__dirname, path.basename(executable, '.zip'));
+const zipArchivePath = path.join(__dirname, zipArchive);
+const extractedPath = path.join(__dirname, path.basename(zipArchive, '.zip'));
 
 if (!fs.existsSync(extractedPath)) {
   console.debug('Extracting SCons executable...');
-  const zip = new AdmZip(executablePath);
+  const zip = new AdmZip(zipArchivePath);
   zip.extractAllTo(__dirname, true);
   fs.chmodSync(extractedPath, 0o755); 
 }
