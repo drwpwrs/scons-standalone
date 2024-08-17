@@ -182,6 +182,10 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Zip entire package
+        run: |
+          zip -r scons-standalone-${{ steps.get-version.outputs.version }}.zip package
+
       - name: Create GitHub Release
         if: steps.check-release.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
@@ -190,4 +194,6 @@ jobs:
           name: Release ${{ steps.get-version.outputs.version }}
           body: >
             This release corresponds to [SCons ${{ steps.get-version.outputs.version }}](https://github.com/SCons/scons/releases/tag/${{ steps.get-version.outputs.version }}).
-          files: package/bin/*.zip
+          files: |
+            package/bin/*.zip
+            scons-standalone-${{ steps.get-version.outputs.version }}.zip
