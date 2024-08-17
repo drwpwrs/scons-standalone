@@ -1,6 +1,6 @@
 {
 	"name": "scons-standalone",
-	"version": "1.0.0",
+	"version": "",
 	"description": "Cross-platform standalone SCons executable for node",
 	"bin": {
 		"scons": "bin/scons"
