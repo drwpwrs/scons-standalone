@@ -17,7 +17,7 @@ jobs:
 
       - name: Get SCons version
         id: get_version
-        run: echo "scons_version=$(cat .scons-version)" >> $GITHUB_OUTPUT
+        run: echo "scons_version=$(cat . scons-version)" >> $GITHUB_OUTPUT
 
       - name: Check if release exists
         id: check_release
@@ -31,7 +31,7 @@ jobs:
             echo "should_build=false" >> $GITHUB_OUTPUT
           fi
 
-  build:
+  build_executables:
     needs: check_version
     if: needs.check_version.outputs.should_build == 'true'
     name: Build on ${{ matrix.os }}
@@ -79,15 +79,16 @@ jobs:
           name: ${{ matrix.output_name }}.zip
           path: dist/${{ matrix.output_name }}.zip
 
-  prepare-package:
-    needs: build
+  prepare_package:
+    needs: [check_version, build_executables]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Python with cache
-        id: setup-python
-        uses: ./.github/actions/setup-python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: Init Bun
         uses: ./.github/actions/init-bun
@@ -99,7 +100,7 @@ jobs:
 
       - name: Update package.json version
         run: |
-          sed -i 's/"version": ".*"/"version": "${{ steps.setup-python.outputs.scons-version }}"/' package.json
+          sed -i 's/"version": ".*"/"version": "${{ needs.check_version.outputs.scons_version }}"/' package.json
 
       - name: Prepare package
         run: |
@@ -115,8 +116,8 @@ jobs:
           name: npm-package
           path: package
 
-  npm-publish:
-    needs: prepare-package
+  npm_publish:
+    needs: prepare_package
     runs-on: ubuntu-latest
     steps:
       - name: Download package artifact
@@ -149,8 +150,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  github-release:
-    needs: prepare-package
+  github_release:
+    needs: prepare_package
     runs-on: ubuntu-latest
     steps:
       - name: Download package artifact
