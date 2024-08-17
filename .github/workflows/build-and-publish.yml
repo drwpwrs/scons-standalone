@@ -126,12 +126,6 @@ jobs:
           name: npm-package
           path: package
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-          registry-url: 'https://registry.npmjs.org'
-
       - name: Check if version exists on npm
         id: version-check
         run: |
@@ -142,11 +136,14 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Install npm
+        run: bun install -g npm
+
       - name: Publish to npm
         if: steps.version-check.outputs.exists == 'false'
         run: |
           cd package
-          npm publish --access public
+          bunx -- bun npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
