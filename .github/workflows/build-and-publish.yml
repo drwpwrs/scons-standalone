@@ -136,11 +136,11 @@ jobs:
           name: npm-package
           path: package
 
-      - name: Init Bun
-        uses: ./.github/actions/init-bun
-
-      - name: Install npm
-        run: bun install -g npm
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Check if version exists on npm
         id: version-check
