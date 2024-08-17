@@ -23,30 +23,18 @@ jobs:
           echo "release_url=$(echo $LATEST_RELEASE | jq -r .html_url)" >> $GITHUB_OUTPUT
           echo "release_name=$(echo $LATEST_RELEASE | jq -r .name)" >> $GITHUB_OUTPUT
 
-      - name: Check if build is needed
-        id: check_build
+      - name: Check if update is needed
+        id: check_update
         run: |
           CURRENT_VERSION=$(cat .scons-version 2>/dev/null || echo "")
           if [ "${{ steps.get_release.outputs.latest_version }}" != "$CURRENT_VERSION" ]; then
-            echo "build_needed=true" >> $GITHUB_OUTPUT
+            echo "update_needed=true" >> $GITHUB_OUTPUT
           else
-            echo "build_needed=false" >> $GITHUB_OUTPUT
+            echo "update_needed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Trigger build workflow
-        if: steps.check_build.outputs.build_needed == 'true'
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          event-type: start-scons-build
-          client-payload: >-
-            {
-              "scons_version": "${{ steps.get_release.outputs.latest_version }}",
-              "scons_release_url": "${{ steps.get_release.outputs.release_url }}",
-              "scons_release_name": "${{ steps.get_release.outputs.release_name }}"
-            }
-
       - name: Update .scons-version file
-        if: steps.check_build.outputs.build_needed == 'true'
+        if: steps.check_update.outputs.update_needed == 'true'
         run: |
           echo "${{ steps.get_release.outputs.latest_version }}" > .scons-version
           git config user.name github-actions
