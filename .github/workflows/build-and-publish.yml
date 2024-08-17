@@ -74,7 +74,7 @@ jobs:
           Compress-Archive -Path ${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.output_name }}.zip
           path: dist/${{ matrix.output_name }}.zip
@@ -94,7 +94,7 @@ jobs:
         uses: ./.github/actions/init-bun
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: dist
 
@@ -111,34 +111,33 @@ jobs:
           cp package.json README.md package/
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: npm-package
           path: package
 
   npm_publish:
-    needs: prepare_package
+    needs: [check_version, prepare_package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Download package artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
           path: package
 
       - name: Init Bun
         uses: ./.github/actions/init-bun
-  
+
       - name: Install npm
         run: bun install -g npm
 
       - name: Check if version exists on npm
         id: version-check
         run: |
-          VERSION=$(node -p "require('./package/package.json').version")
-          if npm view scons-cli@$VERSION version &>/dev/null; then
+          if npm view scons-standalone@${{ needs.check_version.outputs.scons_version }} version &>/dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -150,14 +149,14 @@ jobs:
           cd package
           npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   github_release:
     needs: prepare_package
     runs-on: ubuntu-latest
     steps:
       - name: Download package artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: npm-package
           path: package
