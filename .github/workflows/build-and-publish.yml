@@ -41,8 +41,13 @@ jobs:
           pip install pyinstaller scons==${{ steps.get_version.outputs.scons_version }}
 
       - name: Build standalone SCons executable
-        run: pyinstaller --add-data "$(python -c 'import scons; print(scons.__path__[0])')${{ matrix.os == 'windows-latest' && ';\scons' || ':/scons' }}" --name ${{ matrix.output_name }} src/scons_wrapper.py
-
+        run: |
+          SCONS_PATH=$(python -c 'import scons; print(scons.__path__[0])')
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            pyinstaller --add-data "${SCONS_PATH};scons" --name ${{ matrix.output_name }} src/scons_wrapper.py
+          else
+            pyinstaller --add-data "${SCONS_PATH}:scons" --name ${{ matrix.output_name }} src/scons_wrapper.py
+          fi
       - name: Compress executable
         run: |
           cd dist
