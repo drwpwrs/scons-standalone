@@ -45,11 +45,11 @@ jobs:
           - os: windows-latest
             runner: windows-latest
             output_name: scons-win.exe
-          - os: macos-latest
-            runner: macos-latest
+          - os: macos-13
+            runner: macos-13
             output_name: scons-macos-x86_64
           - os: macos-latest
-            runner: macos-latest-arm64
+            runner: macos-latest
             output_name: scons-macos-arm64
 
     steps:
