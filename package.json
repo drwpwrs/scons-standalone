@@ -15,9 +15,9 @@
 		"scons"
 	],
 	"scripts": {
-		"changeset": "bun run changeset",
-		"version": "bun run changeset version",
-		"release": "bun run changeset publish"
+		"changeset": "changeset",
+		"version": "changeset version",
+		"release": "changeset publish"
 	},
 	"dependencies": {
 		"adm-zip": "^0.5.15"
