@@ -48,8 +48,9 @@ jobs:
       - name: Compress executable (Unix)
         if: runner.os != 'Windows'
         run: |
-          cd bin
+          cd dist
           zip -r ${{ matrix.output_name }}.zip ${{ matrix.output_name }}
+          mv ${{ matrix.output_name }}.zip ../bin/
 
       - name: Compress executable (Windows)
         if: runner.os == 'Windows'
