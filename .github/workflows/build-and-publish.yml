@@ -55,8 +55,9 @@ jobs:
       - name: Compress executable (Windows)
         if: runner.os == 'Windows'
         run: |
-          cd bin
+          cd dist
           Compress-Archive -Path ${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
+          Move-Item ${{ matrix.output_name }}.zip ..\bin\
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
