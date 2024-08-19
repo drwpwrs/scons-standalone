@@ -85,7 +85,7 @@ jobs:
         run: |
           chmod +x bin/scons
 
-      - name: Publish to npm
+      - name: Changesets
         id: changesets
         uses: changesets/action@v1
         with:
