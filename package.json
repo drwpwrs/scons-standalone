@@ -1,17 +1,23 @@
 {
 	"name": "scons-standalone",
-	"version": "",
+	"version": "0.1.0",
 	"description": "Cross-platform standalone SCons executable for node",
 	"bin": {
 		"scons": "bin/scons"
 	},
 	"files": [
 		"bin",
-		"package.json"
+		"package.json",
+		"README.md"
 	],
 	"keywords": [
 		"scons"
 	],
+	"scripts": {
+		"changeset": "changeset",
+		"version": "changeset version",
+		"release": "changeset publish"
+	},
 	"dependencies": {
 		"adm-zip": "^0.5.15"
 	},
@@ -24,5 +30,8 @@
 	"bugs": {
 		"url": "https://github.com/drwpwrs/scons-standalone/issues"
 	},
-	"homepage": "https://github.com/drwpwrs/scons-standalone#readme"
+	"homepage": "https://github.com/drwpwrs/scons-standalone#readme",
+	"devDependencies": {
+		"@changesets/cli": "^2.27.7"
+	}
 }

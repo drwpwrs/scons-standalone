@@ -6,34 +6,10 @@ on:
       - main
   workflow_dispatch: # Allow manual triggers for testing
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
-  check_version:
-    runs-on: ubuntu-latest
-    outputs:
-      should_build: ${{ steps.check_release.outputs.should_build }}
-      scons_version: ${{ steps.get_version.outputs.scons_version }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get SCons version
-        id: get_version
-        run: echo "scons_version=$(cat .scons-version)" >> $GITHUB_OUTPUT
-
-      - name: Check if release exists
-        id: check_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_EXISTS=$(gh release view v${{ steps.get_version.outputs.scons_version }} > /dev/null 2>&1 && echo "true" || echo "false")
-          if [ "$RELEASE_EXISTS" = "false" ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-          fi
-
   build_executables:
-    needs: check_version
-    if: needs.check_version.outputs.should_build == 'true'
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -63,7 +39,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller scons==${{ needs.check_version.outputs.scons_version }}
+          pip install -r requirements.txt
 
       - name: Build executable
         run: |
@@ -72,31 +48,30 @@ jobs:
       - name: Compress executable (Unix)
         if: runner.os != 'Windows'
         run: |
-          cd dist
+          cd bin
           zip -r ${{ matrix.output_name }}.zip ${{ matrix.output_name }}
 
       - name: Compress executable (Windows)
         if: runner.os == 'Windows'
         run: |
-          cd dist
+          cd bin
           Compress-Archive -Path ${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.output_name }}.zip
-          path: dist/${{ matrix.output_name }}.zip
+          path: bin/${{ matrix.output_name }}.zip
 
-  prepare_package:
-    needs: [check_version, build_executables]
+  publish:
+    name: Changeset Version/Publish
     runs-on: ubuntu-latest
+    needs: [build_executables]
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      version: ${{ steps.changesets.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
 
       - name: Init Bun
         uses: ./.github/actions/init-bun
@@ -104,28 +79,27 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist
-
-      - name: Update package.json version
-        run: |
-          sed -i 's/"version": ".*"/"version": "${{ needs.check_version.outputs.scons_version }}"/' package.json
+          path: bin
 
       - name: Prepare package
         run: |
-          mkdir -p package/bin
-          mv dist/*/*.zip package/bin/
-          cp src/run.js package/bin/scons
-          chmod +x package/bin/scons
-          cp package.json README.md package/
+          chmod +x bin/scons
 
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+      - name: Publish to npm
+        id: changesets
+        uses: changesets/action@v1
         with:
-          name: npm-package
-          path: package
+          commit: 'chore: update versions'
+          title: 'chore: update versions'
+          version: bun run version
+          publish: bun run publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  npm_publish:
-    needs: [check_version, prepare_package]
+  github_release:
+    needs: [build_executables, publish]
+    if: needs.publish.outputs.published == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,67 +107,28 @@ jobs:
       - name: Download package artifact
         uses: actions/download-artifact@v4
         with:
-          name: npm-package
-          path: package
+          path: bin
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Check if version exists on npm
-        id: version-check
+      - name: Get SCons version
+        id: get-scons-version
         run: |
-          if npm view scons-standalone@${{ needs.check_version.outputs.scons_version }} version &>/dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Publish to npm
-        if: steps.version-check.outputs.exists == 'false'
-        run: |
-          cd package
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  github_release:
-    needs: prepare_package
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download package artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: npm-package
-          path: package
+          SCONS_VERSION=$(grep "^scons==" requirements.txt | cut -d'=' -f3)
+          echo "scons_version=$SCONS_VERSION" >> $GITHUB_OUTPUT
 
       - name: Get version
         id: get-version
-        run: echo "version=$(node -p "require('./package/package.json').version")" >> $GITHUB_OUTPUT
+        run: echo "version=${{ needs.publish.outputs.version }}" >> $GITHUB_OUTPUT
 
-      - name: Check if GitHub release exists
-        id: check-release
-        run: |
-          if gh release view v${{ steps.get-version.outputs.version }} &>/dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Zip entire package
-        run: |
-          zip -r scons-standalone-${{ steps.get-version.outputs.version }}.zip package
-
-      - name: Create GitHub Release
-        if: steps.check-release.outputs.exists == 'false'
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.get-version.outputs.version }}
-          name: Release ${{ steps.get-version.outputs.version }}
-          body: >
-            This release corresponds to [SCons ${{ steps.get-version.outputs.version }}](https://github.com/SCons/scons/releases/tag/${{ steps.get-version.outputs.version }}).
+          name: Release ${{ steps.get-version.outputs.version }} (SCons ${{ steps.get-scons-version.outputs.version }})
+          body: |
+            ## Changelog
+
+            See the full changelog [here](https://github.com/${{ github.repository }}/blob/${{ github.sha }}/CHANGELOG.md)
+
+            This release corresponds to [SCons ${{ steps.get-scons-version.outputs.version }}](https://github.com/SCons/scons/releases/tag/${{ steps.get-scons-version.outputs.version }}).
           files: |
-            package/bin/*.zip
-            scons-standalone-${{ steps.get-version.outputs.version }}.zip
+            bin/*.zip

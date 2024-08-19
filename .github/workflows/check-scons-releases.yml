@@ -13,32 +13,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get latest SCons release
         id: get_release
         run: |
           LATEST_RELEASE=$(curl -s https://api.github.com/repos/SCons/scons/releases/latest)
           echo "latest_version=$(echo $LATEST_RELEASE | jq -r .tag_name)" >> $GITHUB_OUTPUT
-          echo "release_url=$(echo $LATEST_RELEASE | jq -r .html_url)" >> $GITHUB_OUTPUT
-          echo "release_name=$(echo $LATEST_RELEASE | jq -r .name)" >> $GITHUB_OUTPUT
 
       - name: Check if update is needed
         id: check_update
         run: |
-          CURRENT_VERSION=$(cat .scons-version 2>/dev/null || echo "")
-          if [ "${{ steps.get_release.outputs.latest_version }}" != "$CURRENT_VERSION" ]; then
+          CURRENT_VERSION=$(cat requirements.txt | grep scons | cut -d'=' -f2)
+          LATEST_VERSION="${{ steps.get_release.outputs.latest_version }}"
+          
+          # semver comparison
+          version_gt() {
+            test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
+          }
+          
+          if version_gt "$LATEST_VERSION" "$CURRENT_VERSION"; then
             echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "new_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           else
             echo "update_needed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update .scons-version file
+      - name: Update requirements and changesets
         if: steps.check_update.outputs.update_needed == 'true'
         run: |
-          echo "${{ steps.get_release.outputs.latest_version }}" > .scons-version
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .scons-version
-          git commit -m "Update SCons version to ${{ steps.get_release.outputs.latest_version }}"
+          NEW_VERSION="${{ steps.check_update.outputs.new_version }}"
+          sed -i "s/scons==.*/scons==${NEW_VERSION}/" requirements.txt
+          echo "scons==${NEW_VERSION}" >> changesets.txt
+          git add requirements.txt changesets.txt
+          git commit -m "Update SCons version to ${NEW_VERSION}"
           git push
