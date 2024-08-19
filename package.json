@@ -15,9 +15,9 @@
 		"scons"
 	],
 	"scripts": {
-		"changeset": "changeset",
-		"version": "changeset version",
-		"release": "changeset publish"
+		"changeset:add": "changeset",
+		"changeset:version": "changeset version",
+		"changeset:release": "changeset publish"
 	},
 	"dependencies": {
 		"adm-zip": "^0.5.15"
