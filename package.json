@@ -1,6 +1,7 @@
 {
 	"name": "scons-standalone",
 	"version": "1.0.0",
+	"private": false,
 	"description": "Cross-platform standalone SCons executable for node",
 	"bin": {
 		"scons": "bin/scons"
@@ -34,5 +35,8 @@
 	"homepage": "https://github.com/drwpwrs/scons-standalone#readme",
 	"devDependencies": {
 		"@changesets/cli": "^2.27.7"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
