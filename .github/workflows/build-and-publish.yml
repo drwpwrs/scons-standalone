@@ -9,25 +9,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  version:
-    runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.changesets.outputs.hasChangesets }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/init-bun
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          commit: 'chore: update versions'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build:
-    needs: [version]
-    if: needs.version.outputs.changed == 'true'
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
