@@ -15,6 +15,7 @@ jobs:
       changed: ${{ steps.changesets.outputs.hasChangesets }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/init-bun
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
@@ -91,9 +92,7 @@ jobs:
       version: ${{ steps.changesets.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Init Bun
-        uses: ./.github/actions/init-bun
+      - uses: ./.github/actions/init-bun
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
