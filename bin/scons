@@ -21,13 +21,14 @@ if (!zipArchive) {
   process.exit(1);
 }
 
-const zipArchivePath = path.join(__dirname, zipArchive);
-const extractedPath = path.join(__dirname, path.basename(zipArchive, '.zip'));
+const distDirectory = path.join(__dirname, '..', 'dist')
+const zipArchivePath = path.join(distDirectory, zipArchive);
+const extractedPath = path.join(distDirectory, path.basename(zipArchive, '.zip'));
 
 if (!fs.existsSync(extractedPath)) {
   console.debug('Extracting SCons executable...');
   const zip = new AdmZip(zipArchivePath);
-  zip.extractAllTo(__dirname, true);
+  zip.extractAllTo(distDirectory, true);
   fs.chmodSync(extractedPath, 0o755); 
 }
 

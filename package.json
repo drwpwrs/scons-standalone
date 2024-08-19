@@ -6,6 +6,7 @@
 		"scons": "bin/scons"
 	},
 	"files": [
+		"dist",
 		"bin",
 		"package.json",
 		"README.md"
