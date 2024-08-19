@@ -14,3 +14,7 @@ runs:
         key: ${{ runner.os }}-${{ matrix.bun }}-bun-${{ hashFiles('**/bun.lockb') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.bun }}-bun-
+
+    - name: Install dependencies
+      shell: bash
+      run: bun install
