@@ -16,7 +16,7 @@
 	"exports": {
 		".": {
 			"default": "./dist/index.js",
-			"types": "./dist/types.d.ts"
+			"types": "./dist/index.d.ts"
 		}
 	},
 	"keywords": [
