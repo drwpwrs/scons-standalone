@@ -14,8 +14,6 @@ Requires a JavaScript runtime such as [Node.js](https://nodejs.org) or [Bun](htt
 (npm|yarn|pnpm|bun) install -g scons-standalone
 ```
 
-Alternatively, you can download the relevant executable from the [GitHub releases page](https://github.com/drwpwrs/scons-standalone/releases).
-
 ## Usage
 
 After installation, you can use SCons just like you would normally:
