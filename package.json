@@ -14,7 +14,10 @@
 		"README.md"
 	],
 	"exports": {
-		".": "./index.js"
+		".": {
+			"default": "./index.js",
+			"types": "./types.d.ts"
+		}
 	},
 	"keywords": [
 		"scons"
