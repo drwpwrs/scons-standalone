@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-var run = require('./index.js');
+var run = require('./dist/index.js');
 
 try {
-	run(process.argv.slice(2));
+	run.sconsSync(process.argv.slice(2));
 } catch (error) {
 	process.exit(error.status);
 }

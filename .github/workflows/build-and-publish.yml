@@ -43,25 +43,25 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onefile --hidden-import=SCons.Script --name ${{ matrix.output_name }} scons_wrapper.py
+          pyinstaller --onefile --hidden-import=SCons.Script --name ${{ matrix.output_name }} scons_wrapper.py --distpath scons
 
       - name: Compress executable (Unix)
         if: runner.os != 'Windows'
         run: |
-          cd dist
+          cd scons
           zip -r ${{ matrix.output_name }}.zip ${{ matrix.output_name }}
 
       - name: Compress executable (Windows)
         if: runner.os == 'Windows'
         run: |
-          cd dist
+          cd scons
           Compress-Archive -Path ${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.output_name }}.zip
-          path: dist/${{ matrix.output_name }}.zip
+          path: scons/${{ matrix.output_name }}.zip
 
   npm_publish:
     name: Publish to npm
@@ -77,9 +77,13 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist
+          path: scons
 
-      - name: Prepare package
+      - name: Build dist
+        run: |
+          bun run build
+
+      - name: Prepare bin
         run: |
           chmod +x bin
 

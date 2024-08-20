@@ -15,5 +15,5 @@ build/
 .DS_Store
 Thumbs.db
 
-# Bin zip files
-bin/*.zip
+# SCons executables
+scons/
