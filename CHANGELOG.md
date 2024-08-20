@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.3.0
+
+### Minor Changes
+
+- ceab2f8: add async scons to javascript api
+
 ## 1.2.0
 
 ### Minor Changes
