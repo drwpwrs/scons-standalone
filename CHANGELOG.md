@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.3.1
+
+### Patch Changes
+
+- a1da61f: fix types
+
 ## 1.3.0
 
 ### Minor Changes
