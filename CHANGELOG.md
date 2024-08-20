@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.2.0
+
+### Minor Changes
+
+- 211ea19: Added types for JS API
+
 ## 1.1.0
 
 ### Minor Changes
