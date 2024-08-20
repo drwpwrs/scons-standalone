@@ -4,14 +4,18 @@
 	"private": false,
 	"description": "Cross-platform standalone SCons executable for node",
 	"bin": {
-		"scons": "bin/scons"
+		"scons": "bin"
 	},
 	"files": [
 		"dist",
 		"bin",
+		"index.js",
 		"package.json",
 		"README.md"
 	],
+	"exports": {
+		".": "./index.js"
+	},
 	"keywords": [
 		"scons"
 	],

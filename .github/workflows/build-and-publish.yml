@@ -43,7 +43,7 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onefile --hidden-import=SCons.Script --name ${{ matrix.output_name }} src/scons_wrapper.py
+          pyinstaller --onefile --hidden-import=SCons.Script --name ${{ matrix.output_name }} scons_wrapper.py
 
       - name: Compress executable (Unix)
         if: runner.os != 'Windows'
@@ -81,7 +81,7 @@ jobs:
 
       - name: Prepare package
         run: |
-          chmod +x bin/scons
+          chmod +x bin
 
       - name: Changesets
         id: changesets
