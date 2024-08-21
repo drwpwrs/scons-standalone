@@ -24,7 +24,7 @@ function getExecutable() {
 		throw new Error('Unsupported platform: ' + platform);
 	}
 
-	const sconsDir = path.join(__dirname, '..', 'scons');
+	const sconsDir = path.join(import.meta.dirname, '..', 'scons');
 	const zipArchivePath = path.join(sconsDir, zipArchive);
 	const extractedPath = path.join(sconsDir, path.basename(zipArchive, '.zip'));
 
