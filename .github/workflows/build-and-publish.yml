@@ -43,7 +43,7 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onefile --hidden-import=SCons.Script --name ${{ matrix.output_name }} scons_wrapper.py
+          pyinstaller --onefile --collect-all SCons --name ${{ matrix.output_name }} scons_wrapper.py
 
       - name: Compress executable (Unix)
         if: runner.os != 'Windows'
