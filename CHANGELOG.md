@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.4.1
+
+### Patch Changes
+
+- 9327a1c: correct artifact path
+
 ## 1.4.0
 
 ### Minor Changes
