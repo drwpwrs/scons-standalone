@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.4.3
+
+### Patch Changes
+
+- 913f413: add js file extension to bin
+
 ## 1.4.2
 
 ### Patch Changes
