@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.4.2
+
+### Patch Changes
+
+- 0b6627d: add module type to package.json
+
 ## 1.4.1
 
 ### Patch Changes
