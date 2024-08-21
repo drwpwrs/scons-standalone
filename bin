@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-var run = require('./dist/index.js');
+import { sconsSync } from './dist/index.js';
 
 try {
-	run.sconsSync(process.argv.slice(2));
+	sconsSync(process.argv.slice(2), {
+    stdio: 'inherit',
+  });
 } catch (error) {
 	process.exit(error.status);
 }

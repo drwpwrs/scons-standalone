@@ -48,20 +48,18 @@ jobs:
       - name: Compress executable (Unix)
         if: runner.os != 'Windows'
         run: |
-          cd scons
-          zip -r ${{ matrix.output_name }}.zip ${{ matrix.output_name }}
+          zip -j ${{ matrix.output_name }}.zip scons/${{ matrix.output_name }}
 
       - name: Compress executable (Windows)
         if: runner.os == 'Windows'
         run: |
-          cd scons
-          Compress-Archive -Path ${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
+          Compress-Archive -Path scons\${{ matrix.output_name }} -DestinationPath ${{ matrix.output_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.output_name }}.zip
-          path: scons/${{ matrix.output_name }}.zip
+          path: ${{ matrix.output_name }}.zip
 
   npm_publish:
     name: Publish to npm
