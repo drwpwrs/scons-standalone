@@ -1,5 +1,11 @@
 # scons-standalone
 
+## 1.4.4
+
+### Patch Changes
+
+- c7b209f: simplify scons wrapper
+
 ## 1.4.3
 
 ### Patch Changes
