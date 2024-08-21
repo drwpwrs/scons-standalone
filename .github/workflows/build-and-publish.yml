@@ -84,7 +84,7 @@ jobs:
 
       - name: Prepare bin
         run: |
-          chmod +x bin
+          chmod +x bin.js
 
       - name: Changesets
         id: changesets
