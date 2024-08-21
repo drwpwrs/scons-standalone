@@ -1,5 +1,15 @@
 # scons-standalone
 
+## 1.4.0
+
+### Minor Changes
+
+- 7485952: use ESM for bin
+
+### Patch Changes
+
+- 7485952: fix executable distribution
+
 ## 1.3.1
 
 ### Patch Changes
