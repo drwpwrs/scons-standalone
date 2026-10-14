@@ -4,7 +4,8 @@ import util from 'node:util';
 import { execFileSync, execFile as _execFile } from 'node:child_process';
 import * as fs from 'fs';
 import AdmZip from 'adm-zip';
-import { ExecFileOptions } from 'node:child_process';
+import type { ExecFileOptions, ExecFileSyncOptions, PromiseWithChild } from 'node:child_process';
+import type { Buffer } from 'node:buffer';
 
 const execFile = util.promisify(_execFile);
 
@@ -37,12 +38,15 @@ function getExecutable() {
 	return extractedPath;
 }
 
-export const sconsSync = (args: string[], opts?: ExecFileOptions) => {
+export const sconsSync = (args: string[], opts?: ExecFileSyncOptions): Buffer | string => {
 	const extractedPath = getExecutable();
 	return execFileSync(extractedPath, args, opts);
 };
 
-export const scons = (args: string[], opts?: ExecFileOptions) => {
+export const scons = (args: string[], opts?: ExecFileOptions): PromiseWithChild<{
+	stdout: Buffer | string;
+	stderr: Buffer | string;
+}> => {
 	const extractedPath = getExecutable();
 	return execFile(extractedPath, args, opts);
 };

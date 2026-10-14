@@ -25,12 +25,13 @@
 	],
 	"scripts": {
 		"build": "bun build src/index.ts --external adm-zip --target node --outfile dist/index.js && tsc --project tsconfig.json",
+		"test": "node --test test/*.test.js",
 		"changeset:add": "changeset",
 		"changeset:version": "changeset version",
 		"changeset:release": "changeset publish"
 	},
 	"dependencies": {
-		"adm-zip": "^0.5.15"
+		"adm-zip": "^0.6.1"
 	},
 	"author": "Drew Powers",
 	"license": "MIT",
@@ -45,7 +46,8 @@
 	"devDependencies": {
 		"@changesets/cli": "^2.27.7",
 		"@types/adm-zip": "^0.5.5",
-		"@types/node": "^22.4.1"
+		"@types/node": "^24.19.2",
+		"typescript": "7.0.2"
 	},
 	"publishConfig": {
 		"access": "public"
